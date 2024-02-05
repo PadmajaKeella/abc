@@ -1,8 +1,14 @@
 <html>
-<head>
-<link rel="stylesheet" href="demo.css">
-</head>
 <body>
-<h1>This is sample demo for external cascading style sheets</h1>
+<h1 style=background-color:blue>HELLO!welcome to CSS(color)</h1>
+
+<h1 style=background-color:#154654>HELLO!welcome to CSS(hexadecimal)</h1>
+
+<h1 style=background-color:rgb(100,200,155)>HELLO!welcome to CSS(using rgb function)</h1>
+
+<h1 style=background-color:(0,100,0,0.8)>HELLO!welcome to CSS(using rgb with alpha)</h1>
+
+<h1 style=background-color:hsl(150,50%,50%)>HELLO!welcome to CSS(using hsl function)</h1>
+
 </body>
 </html>
