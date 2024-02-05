@@ -1,0 +1,694 @@
+package travel;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+public class TravelManagementSystem {
+    Map<String, User> users;
+    private List<Flight> flights;  // Changed to Flight
+    private List<Booking> bookings;
+    private int bookingIdCounter;
+    private String currentUsername;
+
+    public TravelManagementSystem() {
+        users = new HashMap<>();
+        flights = new ArrayList<>(); // Changed to Flight
+        bookings = new ArrayList<>();
+        bookingIdCounter = 1; // Initialize the booking ID counter
+        currentUsername = null;
+    }
+
+    // User management methods...
+
+    public void addUser(User user) {
+        users.put(user.getUsername(), user);
+    }
+
+    public User getUserByUsername(String username) {
+        return users.get(username);
+    }
+
+    // Flight management methods...
+
+    public void addFlight(Flight flight) { // Changed to Flight
+        flights.add(flight);
+    }
+
+    public List<Flight> getAllFlights() { // Changed to Flight
+        return flights;
+    }
+
+    // Booking methods...
+
+    public void makeBooking(User user, Flight flight, int numOfPeople) { // Changed to Flight
+        if (flight.getAvailableSeats() >= numOfPeople) {
+            Booking booking = new Booking(bookingIdCounter++, user, flight, numOfPeople); // Changed to Flight
+            bookings.add(booking);
+            flight.setAvailableSeats(flight.getAvailableSeats() - numOfPeople);
+            System.out.println("Booking successful! Your Booking ID is: " + booking.getBookingId());
+        } else {
+            System.out.println("Not enough seats available for booking.");
+        }
+    }
+
+    public void cancelBooking(int bookingId) {
+        Booking bookingToRemove = null;
+        for (Booking booking : bookings) {
+            if (booking.getBookingId() == bookingId) {
+                bookingToRemove = booking;
+                booking.getFlight().setAvailableSeats(booking.getFlight().getAvailableSeats() + booking.getNumOfPeople());
+                break;
+            }
+        }
+        if (bookingToRemove != null) {
+            bookings.remove(bookingToRemove);
+            System.out.println("Booking with ID " + bookingId + " has been canceled.");
+        } else {
+            System.out.println("Booking not found with ID " + bookingId + ". No booking canceled.");
+        }
+    }
+
+    public List<Booking> getBookingsByUsername(String username) {
+        List<Booking> userBookings = new ArrayList<>();
+        for (Booking booking : bookings) {
+            if (booking.getUser().getUsername().equals(username)) {
+                userBookings.add(booking);
+            }
+        }
+        return userBookings;
+    }
+
+    public List<Booking> getAllBookings() {
+        return bookings;
+    }
+
+    // Helper method to check if admin is logged in
+    public boolean isAdminLoggedIn() {
+        User currentUser = getUserByUsername(currentUsername);
+        return currentUser != null && currentUser.isAdmin();
+    }
+
+    // Helper method to get Flights by Flight Number
+    public Flight getFlightByNumber(String flightNumber) { // Changed to Flight
+        for (Flight flight : flights) {
+            if (flight.getFlightNumber().equalsIgnoreCase(flightNumber)) {
+                return flight;
+            }
+        }
+        return null;
+    }
+
+    public void updateFlightDetails(String flightNumber, String newOrigin, String newDestination, int newAvailableSeats, double newPrice) {
+        Flight flightToUpdate = getFlightByNumber(flightNumber);
+
+        if (flightToUpdate != null) {
+            flightToUpdate.setOrigin(newOrigin);
+            flightToUpdate.setDestination(newDestination);
+            flightToUpdate.setAvailableSeats(newAvailableSeats);
+            flightToUpdate.setPrice(newPrice);
+            System.out.println("Flight details updated successfully.");
+        } else {
+            System.out.println("Flight not found. Flight details not updated.");
+        }
+    }
+
+    public static void main(String[] args) {
+        TravelManagementSystem tms = new TravelManagementSystem();
+        Scanner scanner = new Scanner(System.in);
+
+        // Create and add users
+        User user1 = new User("user1", "password1", false);
+        User user2 = new User("user2", "password2", false);
+        User admin = new User("admin", "adminpass", true);
+
+        tms.addUser(user1);
+        tms.addUser(user2);
+        tms.addUser(admin);
+
+        // Create and add flights
+        Flight flight1 = new Flight("F101", "New York", "Los Angeles", 100, 250.0);
+        Flight flight2 = new Flight("F102", "London", "Paris", 80, 150.0);
+
+        tms.addFlight(flight1);
+        tms.addFlight(flight2);
+
+        // Create an instance of UpdateFlightsDetails with tms
+        UpdateFlightsDetails updateDetails = new UpdateFlightsDetails(tms);
+
+        // Interaction with users
+        boolean exit = false;
+
+        while (!exit) {
+ 
+            System.out.println("1. Add user");
+            System.out.println("2. View available flights");
+            System.out.println("3. Make a booking");
+            System.out.println("4. View all bookings");
+            System.out.println("5. View bookings for a specific user");
+            System.out.println("6. Update Flight Details");
+            System.out.println("7. Cancel Booking");
+            System.out.println("8. View Users");
+            System.out.println("9. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1:
+                    // Option 8: Add a new user
+                    addUser(tms, scanner);
+                    break;
+                case 2:
+                    // Option 1: View available Flights
+                    ViewAvailableFlights.show(tms.getAllFlights());
+                    break;
+                case 3:
+                    // Option 2: Make a booking
+                    MakeBooking.make(tms, scanner);
+                    break;
+                case 4:
+                    // Option 3: View all bookings
+                    ViewAllBookings.show(tms.getAllBookings());
+                    break;
+                case 5:
+                    // Option 4: View bookings for a specific user
+                    ViewBookingsForUser.show(tms, scanner);
+                    break;
+                case 6:
+                    // Option 6: Update Flight Details
+                    //UpdateFlightDetails.update(tms, scanner);
+                    
+    // Option 6: Update Flight Details
+    System.out.print("Enter the flight number to update details: ");
+    String flightNumberToUpdate = scanner.next();
+    System.out.print("Enter the new origin: ");
+    String newOrigin = scanner.next();
+    System.out.print("Enter the new destination: ");
+    String newDestination = scanner.next();
+    System.out.print("Enter the new available seats: ");
+    int newAvailableSeats = scanner.nextInt();
+    System.out.print("Enter the new price: ");
+    double newPrice = scanner.nextDouble();
+    
+    tms.updateFlightDetails(flightNumberToUpdate, newOrigin, newDestination, newAvailableSeats, newPrice);
+    break;
+                case 7:
+                    // Option 5: Cancel Booking
+                    CancelBooking.cancel(tms, scanner);
+                    break;
+                case 8:
+                    // Option 7: View Users
+                    ViewUsers.show(tms);
+                    break;
+
+                case 9:
+                    // Option 9: Exit
+                    Exit.exit();
+                    exit = true;
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+        scanner.close();
+    }
+
+    // Method to add a new user
+    private static void addUser(TravelManagementSystem tms, Scanner scanner) {
+        System.out.print("Enter a username for the new user: ");
+        String newUsername = scanner.next();
+        System.out.print("Enter a password for the new user: ");
+        String newPassword = scanner.next();
+        System.out.print("Is the new user an admin? (true/false): ");
+        boolean newIsAdmin = scanner.nextBoolean();
+
+        // Create and add the new user
+        User newUser = new User(newUsername, newPassword, newIsAdmin);
+        tms.addUser(newUser);
+        System.out.println("New user added successfully.");
+    }
+}
+
+
+
+
+package travel;
+public class Booking {
+    private int bookingId;
+    private User user;
+    private Flight flight;
+    private int numOfPeople;
+
+    public Booking(int bookingId, User user, Flight flight, int numOfPeople) {
+        this.bookingId = bookingId;
+        this.user = user;
+        this.flight = flight;
+        this.numOfPeople = numOfPeople;
+    }
+
+    // Getters and setters
+
+    public int getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(int bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Flight getFlight() {
+        return flight;
+    }
+
+    public void setFlight(Flight flight) {
+        this.flight = flight;
+    }
+
+    public int getNumOfPeople() {
+        return numOfPeople;
+    }
+
+    public void setNumOfPeople(int numOfPeople) {
+        this.numOfPeople = numOfPeople;
+    }
+}
+
+
+package travel;
+//package mainproject;
+import java.util.Scanner;
+
+public class CancelBooking {
+    public static void cancel(TravelManagementSystem tms, Scanner scanner) {
+        System.out.print("Enter the booking ID to cancel: ");
+        int bookingId = scanner.nextInt();
+        tms.cancelBooking(bookingId);
+    }
+}
+
+
+package travel;
+
+public class Exit {
+    public static void exit() {
+        
+        System.out.println("Exiting the Travel Management System. Goodbye!");
+    }
+}
+
+
+package travel;
+//package mainproject;
+public class Flight {
+    private String flightNumber;
+    private String origin;
+    private String destination;
+    private int availableSeats;
+    private double price;
+
+    public Flight(String flightNumber, String origin, String destination, int availableSeats, double price) {
+        this.flightNumber = flightNumber;
+        this.origin = origin;
+        this.destination = destination;
+        this.availableSeats = availableSeats;
+        this.price = price;
+    }
+
+    // Getters and setters
+
+    public String getFlightNumber() {
+        return flightNumber;
+    }
+
+    public void setFlightNumber(String flightNumber) {
+        this.flightNumber = flightNumber;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public int getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public void setAvailableSeats(int availableSeats) {
+        this.availableSeats = availableSeats;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+}
+
+
+
+package travel;
+
+//package mainproject;
+import java.util.List;
+import java.util.Scanner;
+
+public class MakeBooking {
+    public static void make(TravelManagementSystem tms, Scanner scanner) {
+        System.out.print("Enter your username: ");
+        String username = scanner.next();
+        System.out.print("Enter your password: ");
+        String password = scanner.next();
+        User user = tms.getUserByUsername(username);
+
+        if (user != null && user.getPassword().equals(password)) {
+           
+            System.out.println("Available Flights for Booking:");
+            List<Flight> availableFlights = tms.getAllFlights();
+            for (Flight flight : availableFlights) {
+                System.out.println(flight.getFlightNumber() + " - " + flight.getOrigin() + " to " + flight.getDestination()
+                        + " (Price: $" + flight.getPrice() + ", Available Seats: " + flight.getAvailableSeats() + ")");
+            }
+
+            System.out.print("Enter the flight number for booking: ");
+            String flightNumber = scanner.next();
+            System.out.print("Enter the number of people for booking: ");
+            int numOfPeople = scanner.nextInt();
+            Flight Flight = tms.getFlightByNumber(flightNumber);
+
+            if (Flight != null) {
+                tms.makeBooking(user, Flight, numOfPeople);
+            } else {
+                System.out.println("Invalid flight number. Booking failed.");
+            }
+        } else {
+            System.out.println("Invalid username or password.");
+        }
+    }
+}
+
+
+//
+package travel;
+//class UpdateFlightsDetails{
+//public void updateFlightDetails(String flightNumber, String newOrigin, String newDestination, int newAvailableSeats, double newPrice) {
+//    Flight flightToUpdate = getFlightByNumber(flightNumber);
+//    
+//    if (flightToUpdate != null) {
+//        flightToUpdate.setOrigin(newOrigin);
+//        flightToUpdate.setDestination(newDestination);
+//        flightToUpdate.setAvailableSeats(newAvailableSeats);
+//        flightToUpdate.setPrice(newPrice);
+//        System.out.println("Flight details updated successfully.");
+//    } else {
+//        System.out.println("Flight not found. Flight details not updated.");
+//    }
+//}
+//}
+public class UpdateFlightsDetails {
+    private final TravelManagementSystem tms;
+
+    public UpdateFlightsDetails(TravelManagementSystem tms) {
+        this.tms = tms;
+    }
+
+    public void updateFlightDetails(String flightNumber, String newOrigin, String newDestination, int newAvailableSeats, double newPrice) {
+        Flight flightToUpdate = tms.getFlightByNumber(flightNumber);
+
+        if (flightToUpdate != null) {
+            flightToUpdate.setOrigin(newOrigin);
+            flightToUpdate.setDestination(newDestination);
+            flightToUpdate.setAvailableSeats(newAvailableSeats);
+            flightToUpdate.setPrice(newPrice);
+            System.out.println("Flight details updated successfully.");
+        } else {
+            System.out.println("Flight not found. Flight details not updated.");
+        }
+    }
+}
+
+
+
+package travel;
+public class User {
+    private String username;
+    private String password;
+    private boolean isAdmin;
+    public User(String username, String password, boolean isAdmin) {
+        this.username = username;
+        this.password = password;
+        this.isAdmin = isAdmin;
+    }
+
+    // Getters and Setters for the fields
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
+
+}
+
+
+
+package travel;
+public class User1 {
+    private String username;
+    private String password;
+    private boolean isAdmin;
+    public User1(String username, String password, boolean isAdmin) {
+        this.username = username;
+        this.password = password;
+        this.isAdmin = isAdmin;
+    }
+
+    // Getters and Setters for the fields
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
+
+}
+
+
+//
+//package travel;
+//public class ViewAllBookings {
+//    private String username;
+//    private String password;
+//    private boolean isAdmin;
+//    public ViewAllBookings(String username, String password, boolean isAdmin) {
+//        this.username = username;
+//        this.password = password;
+//        this.isAdmin = isAdmin;
+//    }
+//
+//    // Getters and Setters for the fields
+//    public String getUsername() {
+//        return username;
+//    }
+//
+//    public void setUsername(String username) {
+//        this.username = username;
+//    }
+//
+//    public String getPassword() {
+//        return password;
+//    }
+//
+//    public void setPassword(String password) {
+//        this.password = password;
+//    }
+//
+//    public boolean isAdmin() {
+//        return isAdmin;
+//    }
+//
+//    public void setAdmin(boolean admin) {
+//        isAdmin = admin;
+//    }
+//
+//}
+package travel;
+import java.util.Scanner;
+
+import java.util.List;
+
+public class ViewAllBookings {
+    public static void show(List<Booking> bookings) {
+        if (bookings.isEmpty()) {
+            System.out.println("No bookings available.");
+        } else {
+            System.out.println("List of all bookings:");
+            for (Booking booking : bookings) {
+                System.out.println(booking);
+            }
+        }
+    }
+
+    public static void show(TravelManagementSystem tms, Scanner scanner) {
+        System.out.print("Enter the username to view bookings: ");
+        String username = scanner.next();
+        List<Booking> userBookings = tms.getBookingsByUsername(username);
+        if (userBookings.isEmpty()) {
+            System.out.println("No bookings found for user: " + username);
+        } else {
+            System.out.println("Bookings for user " + username + ":");
+            for (Booking booking : userBookings) {
+                System.out.println(booking);
+            }
+        }
+    }
+}
+
+
+
+package travel;
+
+import java.util.List;
+
+public class ViewAvailableFlights {
+    public static void show(List<Flight> flights) {
+        System.out.println("Available Flights:");
+        for (Flight flight : flights) {
+            System.out.println(flight.getFlightNumber() + " - " + flight.getOrigin() + " to " + flight.getDestination()
+                    + " (Price: $" + flight.getPrice() + ", Available Seats: " + flight.getAvailableSeats() + ")");
+        }
+    }
+}
+
+
+package travel;
+import java.util.List;
+import java.util.Scanner;
+
+public class ViewBookingsForUser {
+    public static void show(TravelManagementSystem tms, Scanner scanner) {
+        System.out.print("Enter the username to view bookings: ");
+        String viewUsername = scanner.next();
+        List<Booking> userBookings = tms.getBookingsByUsername(viewUsername);
+        if (!userBookings.isEmpty()) {
+            System.out.println("Bookings for User " + viewUsername + ":");
+            for (Booking booking : userBookings) {
+                System.out.println("Booking ID: " + booking.getBookingId());
+                System.out.println("Flight: " + booking.getFlight().getFlightNumber() + " - " +
+                        booking.getFlight().getOrigin() + " to " + booking.getFlight().getDestination());
+                System.out.println("Num of People: " + booking.getNumOfPeople());
+                System.out.println("--------------");
+            }
+        } else {
+            System.out.println("No bookings found for User " + viewUsername + ".");
+        }
+    }
+
+    static void show(List<Booking> allBookings) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+}
+//
+//   
+//}
+//package travel;
+//import java.util.Scanner;
+//
+//import java.util.List;
+//
+//public class ViewBookingsForUser {
+//    public static void show(List<Booking> bookings) {
+//        if (bookings.isEmpty()) {
+//            System.out.println("No bookings available.");
+//        } else {
+//            System.out.println("List of all bookings:");
+//            for (Booking booking : bookings) {
+//                System.out.println(booking);
+//            }
+//        }
+//    }
+//
+//    public static void show(TravelManagementSystem tms, Scanner scanner) {
+//        System.out.print("Enter the username to view bookings: ");
+//        String username = scanner.next();
+//        List<Booking> userBookings = tms.getBookingsByUsername(username);
+//        if (userBookings.isEmpty()) {
+//            System.out.println("No bookings found for user: " + username);
+//        } else {
+//            System.out.println("Bookings for user " + username + ":");
+//            for (Booking booking : userBookings) {
+//                System.out.println(booking);
+//            }
+//        }
+//    }
+//}
+
+
+
+package travel;
+public class ViewUsers {
+    public static void show(TravelManagementSystem tms) {
+        System.out.println("All Users:");
+        for (User user : tms.users.values()) {
+            System.out.println("Username: " + user.getUsername());
+            System.out.println("Admin: " + user.isAdmin());
+            System.out.println("--------------");
+        }
+    }
+}
